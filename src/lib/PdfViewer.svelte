@@ -20,6 +20,7 @@
     'pageInfo',
   ];
   export let showBorder = true;
+  export let enableTextSelection = false;
   export let totalPage = 0;
   export let downloadFileName = '';
   export let showTopButton = true;
@@ -51,6 +52,7 @@
   let isInitialized = false;
   const minScale = 1.0;
   const maxScale = 2.3;
+  let textLayerDiv = null;
 
   const renderPage = async (num) => {
     if (num < 1 || num > pageCount) return;
@@ -70,6 +72,9 @@
 
       // Handle PDF links
       await handlePageLinks(page, viewport);
+      
+      // Render text layer for selection
+      await renderTextLayer(page, viewport);
 
       pageRendering = false;
       currentPage = num;
@@ -142,6 +147,62 @@
     }
     
     canvas.parentNode.appendChild(linkElement);
+  };
+
+  const renderTextLayer = async (page, viewport) => {
+    if (!enableTextSelection || !textLayerDiv) return;
+    
+    // Clear existing text layer
+    textLayerDiv.innerHTML = '';
+    
+    try {
+      const textContent = await page.getTextContent();
+      const textDivs = [];
+      
+      // Create spans for each text item
+      textContent.items.forEach((item, i) => {
+        const span = document.createElement('span');
+        span.textContent = item.str;
+        span.style.position = 'absolute';
+        span.style.whiteSpace = 'pre';
+        span.style.color = 'transparent';
+        span.style.userSelect = 'text';
+        span.style.pointerEvents = 'auto';
+        
+        // Apply font family if available
+        if (textContent.styles && textContent.styles[item.fontName]) {
+          span.style.fontFamily = textContent.styles[item.fontName].fontFamily;
+        }
+        
+        textDivs.push(span);
+        textLayerDiv.appendChild(span);
+      });
+      
+      // Position and scale text spans using the proven solution
+      textContent.items.forEach((item, i) => {
+        const span = textDivs[i];
+        const tx = item.transform;
+        const fontSize = Math.hypot(tx[2], tx[3]);
+        const pdfWidthPx = item.width;
+        
+        // Set initial font size
+        span.style.fontSize = `${fontSize * 0.9}px`;
+        
+        // Position the span
+        span.style.left = `${tx[4]}px`;
+        span.style.top = `${viewport.height - tx[5] - fontSize}px`;
+        
+        // Apply width scaling to fix positioning issues
+        const computedStyle = window.getComputedStyle(span);
+        const measuredWidth = parseFloat(computedStyle.width);
+        if (measuredWidth > 0) {
+          span.style.transform = `scaleX(${(pdfWidthPx * viewport.scale) / measuredWidth})`;
+          span.style.transformOrigin = 'left';
+        }
+      });
+    } catch (error) {
+      console.warn('Could not render text layer:', error);
+    }
   };
 
   const queueRenderPage = (num) => {
@@ -547,12 +608,22 @@
           </span>
         </div>
         <div class={showBorder === true ? 'viewer' : 'null'}>
-          <canvas bind:this={canvas} width={pageWidth} height={pageHeight}></canvas>
+          <div class="pdf-container">
+            <canvas bind:this={canvas} width={pageWidth} height={pageHeight}></canvas>
+            {#if enableTextSelection}
+              <div bind:this={textLayerDiv} class="text-layer"></div>
+            {/if}
+          </div>
         </div>
       </div>
     {:else}
       <div class={showBorder === true ? 'viewer' : 'null'}>
-        <canvas bind:this={canvas}></canvas>
+        <div class="pdf-container">
+          <canvas bind:this={canvas}></canvas>
+          {#if enableTextSelection}
+            <div bind:this={textLayerDiv} class="text-layer"></div>
+          {/if}
+        </div>
         <!-- width={window.innerWidth} -->
         <!-- height={window.innerHeight}  -->
       </div>
@@ -872,5 +943,21 @@
   
   :global(.pdf-link-overlay:hover) {
     background-color: rgba(0, 123, 255, 0.1) !important;
+  }
+
+  .pdf-container {
+    position: relative;
+    display: inline-block;
+  }
+
+  .text-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+    opacity: 0.2;
+    line-height: 1.0;
   }
 </style>
