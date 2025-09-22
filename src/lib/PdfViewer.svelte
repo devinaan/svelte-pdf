@@ -192,15 +192,15 @@
         span.style.fontSize = `${fontSize * 0.9}px`;
         
         // Position the span using official PDF.js coordinate transformation
-        // The key insight: PDF.js applies viewport transformation matrix
-        // tx values are already in viewport coordinates, but we need to account for the Y-axis flip
+        // Apply the correct coordinate transformation from PDF coordinate system to CSS
         const left = tx[4];
         const top = tx[5] - fontAscent;
         
-        // Apply the correct coordinate transformation from PDF.js
-        // The viewport height adjustment is needed to convert from PDF to CSS coordinates
+        // The key insight: Apply coordinate system conversion
+        // PDF uses bottom-left origin, CSS uses top-left origin
+        // The correct transformation accounts for the viewport transformation matrix
         const displayLeft = left;
-        const displayTop = viewport.height - top - fontSize;
+        const displayTop = viewport.height - top;
         
         span.style.left = `${displayLeft}px`;
         span.style.top = `${displayTop}px`;
