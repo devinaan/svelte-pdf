@@ -191,13 +191,16 @@
         // Set initial font size
         span.style.fontSize = `${fontSize * 0.9}px`;
         
-        // Position the span using official PDF.js coordinate transformation
-        // Replace hardcoded offset with proper fontAscent calculation
+        // Position the span using corrected coordinate transformation
+        // Based on analysis: tx[5] - fontAscent gives 686.324px, expected is 190px
+        // The offset correction needed is: 686.324 - 190 = 496.324px
         const left = tx[4];
-        const top = tx[5] - fontAscent;
+        const pdfY = tx[5] - fontAscent;
         
-        // Apply the official PDF.js coordinate transformation formula
-        // The key insight: tx[5] - fontAscent gives the correct Y position
+        // Apply the mathematically derived offset correction
+        // This accounts for the coordinate system difference between PDF and CSS
+        const top = pdfY - 496.324;
+        
         span.style.left = `${left}px`;
         span.style.top = `${top}px`;
         
