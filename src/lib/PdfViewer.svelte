@@ -192,9 +192,13 @@
         span.style.fontSize = `${fontSize * 0.9}px`;
         
         // Position the span using official PDF.js coordinate transformation
-        // PDF.js uses tx[5] - fontAscent directly, but we need viewport scaling
-        span.style.left = `${tx[4]}px`;
-        span.style.top = `${tx[5] - fontAscent}px`;
+        // Use the exact formula from PDF.js: tx[5] - fontAscent for Y-coordinate
+        const left = tx[4];
+        const top = tx[5] - fontAscent;
+        
+        // Apply direct pixel positioning as used in PDF.js
+        span.style.left = `${left}px`;
+        span.style.top = `${top}px`;
         
         // Apply width scaling to fix positioning issues using the proven solution
         const computedStyle = window.getComputedStyle(span);
