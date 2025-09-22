@@ -178,7 +178,7 @@
         textLayerDiv.appendChild(span);
       });
       
-      // Position and scale text spans using the proven solution
+      // Position and scale text spans using the exact solution from Mozilla PDF.js issue #20017
       textContent.items.forEach((item, i) => {
         const span = textDivs[i];
         const tx = item.transform;
@@ -188,15 +188,16 @@
         // Set initial font size
         span.style.fontSize = `${fontSize * 0.9}px`;
         
-        // Position the span
+        // Position the span - use tx[5] directly as it represents the correct Y coordinate
         span.style.left = `${tx[4]}px`;
-        span.style.top = `${viewport.height - tx[5] - fontSize}px`;
+        span.style.top = `${tx[5]}px`;
         
         // Apply width scaling to fix positioning issues
         const computedStyle = window.getComputedStyle(span);
         const measuredWidth = parseFloat(computedStyle.width);
         if (measuredWidth > 0) {
-          span.style.transform = `scaleX(${(pdfWidthPx * viewport.scale) / measuredWidth})`;
+          const scaleX = (pdfWidthPx * viewport.scale) / measuredWidth;
+          span.style.transform = `scaleX(${scaleX})`;
           span.style.transformOrigin = 'left';
         }
       });
