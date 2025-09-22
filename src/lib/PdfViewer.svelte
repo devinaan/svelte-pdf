@@ -188,16 +188,15 @@
         // Set initial font size
         span.style.fontSize = `${fontSize * 0.9}px`;
         
-        // Position the span - use tx[5] directly as it represents the correct Y coordinate
+        // Position the span - correct Y-coordinate transformation based on canvas height
         span.style.left = `${tx[4]}px`;
-        span.style.top = `${tx[5]}px`;
+        span.style.top = `${tx[5] - 574}px`;
         
-        // Apply width scaling to fix positioning issues
+        // Apply width scaling to fix positioning issues using the proven solution
         const computedStyle = window.getComputedStyle(span);
         const measuredWidth = parseFloat(computedStyle.width);
         if (measuredWidth > 0) {
-          const scaleX = (pdfWidthPx * viewport.scale) / measuredWidth;
-          span.style.transform = `scaleX(${scaleX})`;
+          span.style.transform = `scaleX(${(pdfWidthPx * viewport.scale) / measuredWidth})`;
           span.style.transformOrigin = 'left';
         }
       });
