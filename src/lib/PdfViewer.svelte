@@ -188,9 +188,9 @@
         // Set initial font size
         span.style.fontSize = `${fontSize * 0.9}px`;
         
-        // Position the span - correct Y-coordinate transformation based on canvas height
+        // Position the span - fine-tuned Y-coordinate transformation for proper alignment
         span.style.left = `${tx[4]}px`;
-        span.style.top = `${tx[5] - 574}px`;
+        span.style.top = `${tx[5] - 551}px`;
         
         // Apply width scaling to fix positioning issues using the proven solution
         const computedStyle = window.getComputedStyle(span);
