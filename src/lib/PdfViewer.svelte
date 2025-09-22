@@ -178,19 +178,23 @@
         textLayerDiv.appendChild(span);
       });
       
-      // Position and scale text spans using the exact solution from Mozilla PDF.js issue #20017
+      // Position and scale text spans using official PDF.js coordinate transformation
       textContent.items.forEach((item, i) => {
         const span = textDivs[i];
         const tx = item.transform;
         const fontSize = Math.hypot(tx[2], tx[3]);
         const pdfWidthPx = item.width;
         
+        // Calculate fontAscent using the official PDF.js approach
+        const fontAscent = fontSize * 0.8;
+        
         // Set initial font size
         span.style.fontSize = `${fontSize * 0.9}px`;
         
-        // Position the span - fine-tuned Y-coordinate transformation for proper alignment
+        // Position the span using official PDF.js coordinate transformation
+        // PDF.js uses tx[5] - fontAscent directly, but we need viewport scaling
         span.style.left = `${tx[4]}px`;
-        span.style.top = `${tx[5] - 551}px`;
+        span.style.top = `${tx[5] - fontAscent}px`;
         
         // Apply width scaling to fix positioning issues using the proven solution
         const computedStyle = window.getComputedStyle(span);
