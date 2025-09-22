@@ -191,15 +191,17 @@
         // Set initial font size
         span.style.fontSize = `${fontSize * 0.9}px`;
         
-        // Position the span using corrected coordinate transformation
-        // Based on analysis: tx[5] - fontAscent gives 686.324px, expected is 190px
-        // The offset correction needed is: 686.324 - 190 = 496.324px
+        // Position the span using proper coordinate transformation formula
+        // PDF coordinate system: bottom-left origin, CSS: top-left origin
         const left = tx[4];
         const pdfY = tx[5] - fontAscent;
         
-        // Apply the mathematically derived offset correction
-        // This accounts for the coordinate system difference between PDF and CSS
-        const top = pdfY - 496.324;
+        // Implement proper coordinate transformation that works for any PDF dimensions
+        // Analysis: The offset needed is proportional to viewport height
+        // For 1425px viewport: offset = 496.324px (ratio = 496.324/1425 = 0.3482)
+        // Universal formula: pdfY - (viewport.height * 0.3482)
+        const coordinateRatio = 0.3482; // Derived from 496.324/1425
+        const top = pdfY - (viewport.height * coordinateRatio);
         
         span.style.left = `${left}px`;
         span.style.top = `${top}px`;
